@@ -1,0 +1,356 @@
+
+Hive: Class 2 - 04/03/2016
+
+---------------------------------
+
+mr-jobhistory-daemon.sh start historyserver
+
+show databases;
+
+
+
+use databases;
+
+After creating the table structure, we are loading the data into the tables:
+
+load data local inpath 'home/jpasolutions/data_30l.txt' into table patient_stage2;
+
+When we have the file already in the HDFS:
+
+load data inpath '/Mahe/data_30l.txt' into table patient_stage2;
+
+File will be saved under default location:
+
+create table patient(pid int, pname string, drug string, gender string, amt int) row format delimited fields terminated by ',';
+
+When we have the file already in hadoop file system we are just pointing the Location while craeting the tables in Hive:
+
+create table patient(pid int, pname string, drug string, gender string, amt int) row format delimited fields terminated by ',' Location '/hivepatient/';
+
+Connecting mysql:
+
+mysql -u root -p
+
+Password: root
+
+
+Partition:
+
+Static partition: When the upstream system itselt giving the file separately, in such cases we can use static partition
+
+Here we are partitioning the record based on country:
+
+create table PSPartition(pid int, pname string, drug string, gender string, amt int) partitioned by (Country string) row format delimited fields terminated by ',';
+
+load data local inpath '/home/jpasolutions/hadoop/data/data_10.txt' into table PSPartition Partition(country = 'US');
+load data local inpath '/home/jpasolutions/hadoop/data/data_10.txt' into table PSPartition Partition(country = 'UK');
+load data local inpath '/home/jpasolutions/hadoop/data/data_10.txt' into table PSPartition Partition(country = 'INDIA');
+
+
+select * from pspartition where country = 'US';
+
+Dynamic Partition;
+
+1. set hive.exec.dynamic.partition=true;
+
+	Tis enables dynamic partitions, by default it is false
+
+2. set hive.exec.dynamic.partition.mode=nonstrict;
+
+	we are using a dynamic partition without a static
+
+stage table created to keep the file temporarily:
+create table patient_stage(pid int, pname string, drug string, gender string, amt int) row format delimited fields terminated by ',';
+
+load data local inpath '/home/jpasolutions/hadoop/data/data_10.txt' into table patient_stage;
+
+
+New table created to partition the column in single file to load:(the column 
+create table PDPartition(pid int, pname string, gender string, amt int) partitioned by (drug string) row format delimited fields terminated by ',';
+
+
+insert into table PDPartition partition(drug) select pid,pname,gender,amt,drug from patient_stage;
+
+select * from pdpartition where drug ='avil';
+
+-----------------
+
+BUCKETING:
+
+set hive.enforce.bucketing=true;
+
+create table bucketed_patient(pid int, pname string, drug string, gender string, amt int) CLUSTERED BY (pid,amt) INTO 4 BUCKETS; ---row format delimited fields terminated by ',' stored as textfile;
+
+insert overwrite table bucketed_patient select pid, pname, drug, gender, amt from patient_stage;
+
+we can use both into and overwrite, overwrite will remove existing data
+
+select * from bucket_patient(1 out of 4);
+
+
+----------------------------------
+
+VIEW:
+
+CREATE VIEW TESTVIEW AS SELECT * FROM PATIENT_STAGE;
+
+ALTER TABLE PATIENT RENAME TO PATIENT_ALTER;
+
+ALTER TABLE PATIENT_ALTER ADD COLUMNS (EXTRA STRING);
+
+----------------------------------------
+
+
+COLLECTIONS:
+
+Array example:
+
+create table patientarray(pid int, pname string, drug string, gender string, amt int, address array<string>) row format delimited fields terminated by ',' collection items terminated by '$';
+
+load data local inpath '/home/jpasolutions/hadoop/data/patientarray.txt' into table patientarray;
+
+select address[1] from patientarray;
+
+select address[2] from patientarray where pid = 1;
+
+Map example;
+
+using the key valu pair 
+                                          
+----------------------------------------
+
+Joins:
+
+create table drug (id int, name string, company string) row format delimited fields terminated by ',';
+
+load data local inpath '/home/jpasolutions/hadoop/data/drug.txt' into table drug;
+
+
+select * from patient_stage;
+
+select * from drug;
+
+select * from patient_stage join drug on patient_stage.drug=drug.name; 
+
+
+
+
+Enabling hive server: --
+
+hive --service hiveserver
+
+It is enabled to connect post 10000 to connect the hive via JDBC program
+
+
+
+Predefined system functions in hive:
+
+
+show functions;
+
+select upper(pname) from patient_stage;
+
+
+File formats:
+
+RC, ORC, Parquet
+
+
+Create a staging table and load data
+
+//RC File format
+
+
+create table patient_stage2_rc(pid int, pname string, drug string, gender string, amt int) 
+row format delimited fields terminated by ','
+stored as RCFILE;
+
+insert into table patient_stage2_rc select * from patient_stage2;
+
+//ORC File format
+
+create table patient_stage2_orc(pid int, pname string, drug string, gender string, amt int) 
+row format delimited fields terminated by ','
+stored as ORC tblproperties ("orc.properties" = "ZLIB");
+
+insert into table patient_stage2_orc select * from patient_stage2;
+
+no look at the file size, file size will get redeuced.
+
+
+user defined functions:
+
+create a user defined function in java class and export the jar file
+
+add jar /home/*/*.jar;
+
+list jar;
+
+create temporary function my_lower as "org.samples.hive.training.HiveUDF";
+
+show functions; ---- the above added functions should be available in the list of functions
+
+
+Hue Installation:
+
+Check the hue installation document.
+
+editable files are available under hadoop2.7.1/etc/hadoop/
+
+
+To initiate hue :
+Command:- supervisor
+
+Command: hive --service metastore
+
+Command: hive --service hiveserver2
+
+---------------------------------------
+
+BEELINE PROPERTY:
+
+open the hive-site.xml under hive/conf
+
+and add additional properties in it..
+
+<property>
+  <name>hive.server2.transport.mode</name>
+  <value>binary</value>
+</property>
+
+<property>
+  <name>hive.server2.thrift.port</name>
+  <value>10000</value>
+</property>
+
+<property>
+  <name>hive.server2.thrift.min.worker.threads</name>
+  <value>5</value>
+</property>
+
+<property>
+  <name>hive.server2.thrift.max.worker.threads</name>
+  <value>500</value>
+</property>
+
+<property>
+  <name>hive.server2.async.exec.threads</name>
+  <value>50</value>
+</property>
+
+<property>
+  <name>hive.server2.async.exec.shutdown.timeout</name>
+  <value>10</value>
+</property>
+
+<property>
+  <name>hive.support.concurrency</name>
+  <value>true</value>
+</property>
+
+(these properties should be commendted when executing hive.hql(Job mode)
+
+Start metastore: hive --service metastore
+
+start hivelearn2: hive --service hivelearn2
+
+start beeline
+
+start jdbc client server: !connect jdbc:hive2://localhost:10000
+
+give user name and password
+
+hive commands should be executed under the jdbc server only, purpose of this is we cannot log in to hive and execute when we have 100 of nodes running under a cluster, so we are logging in
+
+---------------
+ 
+HQL:
+
+hive -f hivetest.hql
+
+commands we 
+ are separately using to create and load and execute data are put together under a single file as *.hql and we are executing the file using hive command.
+
+It is same as that of stored procedure in SQL
+
+
+Hive query execution:
+
+Hive commands can be executed in the 3 ways,
+
+1. hive CLI - command line interface
+2. hive job(batch mode): hive -f hivetest.hql
+3. execution mode: hive -e 'select * from ***;'
+
+
+-----------------------------------------
+
+CONCAT_WS:
+The function is similar to the CONCAT function. Here you can also provide the delimiter, which can be used in between the strings to concat.
+Example: CONCAT_WS('-','hadoop','hive') returns 'hadoop-hive'
+
+COLLECT_SET:
+To group the values based on group by key, Will group only distinct values only
+
+COLLECT_LIST:
+Same function as above, But will hold duplicate values as well
+
+ADD_MONTH:
+ADD_MONTHS(NEXT_REV_DT,-(CAST(TRIM(SUBSTR(ANL_REV_FL,1,2)) AS INT)))
+To add months to date field, First field is date and second is month
+Can Minus the months also by changing the sign
+
+ADD_DATE:
+DATE_ADD('2000-03-01', 5) returns '2000-03-06' 
+
+DATE SPLITS:
+SELECT YEAR(date filed) FROM;
+SELECT MONTH(date filed) FROM;
+Similar way we can use day, HOUR, MINUTE,SECOND, WEEKOFYEAR
+
+DATE DIFF:
+DATEDIFF('2000-03-01', '2000-01-10')  returns 51
+
+TO SET HEADER RECORD:
+set hive.cli.print.header=true;
+set hive.cli.print.current.db=true;
+set hive.execution.engine=mr
+
+
+Extracting Table data to local:
+hadoop fs -getmerge hdfs://STANCDEV1TDH/apps/hive/warehouse/pvb_gns.db/v_gns_t1_t3 /data/sit/edm/output/outfile.dat
+
+Spark:
+RDD - Spark data structure, 
+Data frame - Similar to Tables in SQL, Organising Datasets
+DataSet - Collection of data
+
+spark-shell
+val sqlContext = new org.apache.spark.sql.hive.HiveContext(sc)
+val a = sqlContext.sql("SELECT COUNT(*) AS COUNT FROM PVBSIT_SRI_OPEN.PVBSIT_ALL_CUPDINDIVIDUALPARTY")
+a.show()
+a.count()
+
+Read JSON File: val dfs = sqlContext.read.json("employee.json")
+
+Read PARQUET File: val parqfile = sqlContext.read.parquet("employee.parquet")
+Creating table for dataframe: Parqfile.registerTempTable("employee")
+
+Avro:
+File Format defined in JSO
+Avro- Row based storage format
+Parquet- Column based storahe format
+Pig Latin is procedural, where SQL is declarative.
+
+sh -x disaster_recovery.sh all gps 20170220
+
+val r1 = sc.textFile("file:///home/bcbssit/Platinum_Scripts/Mahe/GNS_20160727/data_extract/GNS_EDM_PSHR_20170126_ALL.dat")
+
+val sqlContext = new org.apache.spark.sql.hive.HiveContext(sc)
+val a = sqlContext.sql("SELECT COUNT(*) AS COUNT FROM PVBSIT_SRI_OPEN.PVBSIT_ALL_CUPDINDIVIDUALPARTY")
+a.show()
+
+
+hive -S -e "INSERT OVERWRITE LOCAL DIRECTORY '/CTRLFW/SOURCG/SCUDEE/SIT/GTM_SCRIPTS/falcon/FALCON_ALL_THIRD_PARTY_TYPE.txt' row format delimited fields terminated by ',' SELECT * FROM FALCON_SNAPSHOT.FALCON_ALL_THIRD_PARTY_TYPE;"
+
+beeline -u "jdbc:hive2://hklpathas04.hk.standardchartered.com:2181 --outputformat=csv2 -e "SELECT * FROM FALCON_SNAPSHOT.FALCON_ALL_THIRD_PARTY_TYPE" >>/CTRLFW/SOURCG/SCUDEE/SIT/GTM_SCRIPTS/falcon/FALCON_ALL_THIRD_PARTY_TYPE1.txt

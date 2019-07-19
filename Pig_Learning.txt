@@ -1,0 +1,310 @@
+
+
+Day 1: Installation
+
+untar and add export path and set path in bashrc
+
+Drawbacks of hive:
+1. only structure data
+2. Schema is mandatory
+3. Intermediate data is permanent one, we need to delete it manually
+
+
+to log into grunt shell --- pig -x local
+
+the above command will log in as local
+
+if we just give pig, it will log in as MapReduce
+
+Read the file from local:
+
+A = load '/home/jpasolutions/hadoop/data/data_10.txt/' using PigStorage(',');
+
+Dump A;
+
+If i want to filter the file based on a drug, same as where condition in HQL/SQL
+
+B = filter A by $2 == 'avil';
+
+Dump B;
+
+here A and B are called as Relation
+
+---------------------
+
+Above commands we are not using schema, values are retrived based on the positions
+
+We can able to provide schema as well to the file, se below
+
+A = load '/home/jpasolutions/hadoop/data/data_10.txt/' using PigStorage(',') as (pid:int, pname:chararray, drug:chararray, gender:chararray, tot_amt:int);
+
+F = filter A by drug == 'avil';
+
+dump F;
+
+here chararray is used as a datatype instead of string.
+
+-----------------------------
+
+G = foreach A generate pid,pname;
+
+Dump G;
+
+The above is the case when we have schema specified.
+
+If we dont have schema,
+
+R = foreach A generate $0,$1;
+
+Dump R;
+
+--------------------------------
+
+if we want to use the functions in it,
+
+P = foreach A generate pid+5,pname;
+
+Dump P;
+
+K = foreach A generate pid,SUBSTRING(pname,0,5);
+
+Dump K;
+
+Below i am applying the logic only to first two columns and want to print the remaining columns as it is
+
+K = foreach A generate pid+5,SUBSTRING(pname,0,5),drug..;
+
+Dump K;
+
+
+--------------------------------------
+
+If i want to store the output in some where,
+
+Store K into '/home/jpasolutions/PigLearn/' using PigStorage('|');
+
+----------------------------------
+
+Describe A;
+
+It shows the schema of the relation A;
+
+---------------------------------
+
+Explain A;
+
+Explain K;
+
+It shows the the plan and step it will execute the query.
+
+-------------------------------------------
+
+Illustrate: Used to debug the query we write, it will show how the output will be.
+
+A = load '/home/jpasolutions/HADOOP/data/data_10.txt/' using PigStorage(',') as (pid:int, pname:chararray, drug:chararray, gender:chararray, tot_amt:int);
+
+B = filter A by $2 == 'avil';
+
+C = foreach B Generate $0, $1, $2, $4;
+
+D = filter C by $3 > 200;
+
+illustrate D;
+
+--------------------------------------------
+
+Grouping and Sorting:
+
+D = GROUP A by $2;
+
+sm = foreach D generate group, SUM(A.$4) as s;
+
+smorder = order sm by s desc;
+
+dump smorder;
+
+-------------------------------------------
+
+Eliminating Duplicates:(same as unique/Distinct command in SQL)
+
+D = foreach A generate drug;
+
+unique = DISTINCT D;
+
+Dump unique;
+
+------------------------------------------------
+
+LIMIT: Limit the no of records
+
+F = limit A 2;
+
+Dump F;
+
+---------------------------------------------------
+
+MATCHES: Similar to like command in SQL
+
+Q = filter A by drug matches 'av.*';
+
+Dump Q;
+
+--------------------------------------------------
+
+NOT MATCHES:
+
+E = filter A by not drug matches 'av.*';
+
+Dump E;
+
+----------------------------------------------------
+
+COUNT_STAR: Count the no of columns including NULL
+COUNT: Exclude the NULL values and counting
+
+T = GROUP A ALL;
+
+COUNT = foreach T generate COUNT(A);
+
+Dump COUNT;
+
+---------------------------------------------------
+
+Macros in PIG: Defining the filter conditions in case if we are using it frequently in the same procedure(Help full in real time)
+
+DEFINE my_macro(V, col, value) returns B {$B = FILTER $V BY $col == '$value';};
+
+C = my_macro(A,$2,'avil');
+
+Dump C;
+
+----------------------------------------------------
+
+Join:
+
+B = load '/home/jpasolutions/HADOOP/data/drug.txt/' using PigStorage(',') as (pid: int,drug: chararray,company: chararray);
+
+C = join A by $2, B by $1;
+
+Dump C;
+
+K = join A by drug, B by drug;
+
+Dump K;
+
+-----------------------------------------------------
+-----------------------------------------------------------
+
+Special Joins:
+
+Replicated Joins: By default it can keep a file in Memory if it sets in this Memory.
+
+K = join A by drug, B by drug using 'replicated';
+
+Dump K;
+
+-------------------------------------------------------------
+
+Skewed Join:
+
+P = join A by drug, B by drug using 'skewed';
+
+Dump P;
+
+----------------------------------------------------------
+
+Group vs CoGroup:
+
+Grouping with more than 1 columns,
+
+S = COGROUP A by $2, B by $1;
+
+Dump S;
+
+SPLIT: Same as that of filter by, in filter condition we need to specify separate relation. but in SPLIT it can be written in Single command.
+
+SPLIT A into males IF gender == 'male' ,females IF gender == 'female';
+
+Dump males;
+
+Dump females;
+
+----------------------------------------------------------
+
+Executing the pig commands in Batch Mode:
+
+Save some executable commands in a file and execute it.
+
+pig -x local -f test.pig
+
+
+----------------------------------------------------------
+
+Loading the JSON File:
+
+R = load '/home/jpasolutions/PIG/patient.json' using JsonLoader('pid:int, pname:chararray, drug:chararray, tot_amt:int');
+
+Dump R;
+
+JsonLoader is a jar file -- piggybank bank jar file under lib folder in pig
+
+----------------------------------------
+CSV loader:
+
+while loading CSV excel file, incase a single column is separated using ',' we need to use CSVExcelStorage jar file 
+
+T = load '/home/jpasolutions/PIG/patient.csv' using PigStorage(',');
+
+Dump T:
+
+W = load '/home/jpasolutions/PIG/patient1.csv using org.apache.pig.piggybank.storage.CSVExcelStorage as ('pid:int, pnamenews:chararray, drug:chararray, gender:chararray, amt:int');
+
+Dump W;
+
+
+Verify for Fixed Length as well, check in Google
+----------------------------------------------
+
+
+H-catalog to read Hive data:
+
+pig -useHCatalog
+
+pig -f script.pig -param input=somefile.txt
+pig -param date=20130326 -f myfile.pig
+INPUT = LOAD '/data/input/$date'
+pig -param_file=myfile.ini -f myfile.pig
+
+E = FOREACH B GENERATE CONCAT($0,'-'$1) AS ps;
+
+B = LOAD '/data/sit/edm/hadoop/CACS/data/CN/archive/ZLT0193.D2016278.T124655922.R014447' USING PigStorage('$delimiter_source') AS ($datatypes)
+
+pig -useHCatalog to load hive tables in pig
+
+PigStorage('\u0001');
+
+---------------------------------------------------------
+
+Sample script to compare the data:
+
+########### LOADING HIVE #############
+A = LOAD 'sit_sri_open.rlssit_hk_ca100a' using org.apache.hive.hcatalog.pig.HCatLoader();
+B = FOREACH A GENERATE $2..$4;
+C = LIMIT B 20;
+D = LIMIT B 10;
+E = COGROUP C BY ($1,$2), D BY ($1,$2);
+F = FOREACH E GENERATE SUBTRACT(C, D);
+G = FOREACH F GENERATE FLATTEN($0);
+H = FILTER G BY $0 IS NOT NULL;
+
+
+
+############ LOADING SOURCE ###########
+I = LOAD '/CTRLFW/SOURCG/RLSDEV/RLS/sit_haaslocal/sit/scripts/file_backup_in_day0/IN.CZ300A.SUSP.170527.TXT' USING PigStorage('|');
+J = FOREACH I GENERATE $0..;
+K = LIMIT J 6;
+L = LIMIT J 5;
+M = COGROUP K BY ($0,$1), L BY ($0,$1);
+N = FOREACH M GENERATE SUBTRACT(K, L);
+O = FOREACH N GENERATE FLATTEN($0);
+P = FILTER O BY $0 IS NOT NULL;

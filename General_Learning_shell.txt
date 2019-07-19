@@ -1,0 +1,331 @@
+http://www.thegeekstuff.com/
+http://www.computerhope.com/
+
+##Use of tee:
+to direct the output to some file, -a to append the existing record in written file
+echo "date" | tee -a file.txt
+
+##To add a extra line
+echo -e "\n" 
+
+##To remove specific character from the string/file
+tr --delete Â < GNS_EDM_EBBS_20160805_IN_UTF8.dat > GNS_EDM_EBBS_20160805_IN_UTF81.dat 
+
+##Changing date format
+DATE=`date +%Y-%m-%d` 
+
+##To reset the text and background colour
+setterm -term linux -back default -fore default -clear
+
+##It will silent the file name at the end of the word count
+wc -l < GNS_EDM_EBBS_20160805_IN_UTF8.dat
+wc -l * | awk '{print $1}'
+
+##Getting second record from tailor fields separated by delimiter
+tail -1 GNS_EDM_EBBS_20160805_IN_UTF8.dat | awk -F '§' '{print $2}'
+
+##To assign a file value to variable
+#It is assigning first line value only
+read variable < filename   
+
+##Assign all line values to a variable 
+var=$(<20.txt)
+
+##Remove the header and Trailer record from a file
+tail -n +2 file name | head -n -1 
+
+##Check if the file is empty
+[[ -s file1.txt ]]  
+
+##Passing a variable to awk
+awk -v a="$position" -F '§' '$a==""'
+
+##sort with unique
+sort -u 
+
+##Count -1 and printing the file name
+wc -l * | awk '{print $1-1,$2}'
+
+##Getting schema details from hive
+hive -S -e "describe sit_sri_open.gemfrsit_tw_ctfapplication;" | sed '/^\s*$/d' | sed '/#/d' | 
+tr --delete ")" | tr --delete "," | tr --delete "(" | awk '{print $1,$2}'| tr '[:lower:]' '[:upper:]' | 
+sort -u >> /var/opt/teradata/home/gemfrappsit/Rads/${Tablename}.txt
+
+##Removing empty lines from the file even if it has tab,space etc
+sed '/^\s*$/d'
+
+##Removing lines having charaters like '#"
+sed '/#/d'
+
+##Replace 2nd string in a file
+sed 's/20160721/20160702/1' *
+
+#Delete specific characters from a file:
+tr --delete ")" | tr --delete "," | tr --delete "(" 
+
+##Convert lower case to upper or vice 
+tr '[:lower:]' '[:upper:]'
+
+##Replace character with other
+tr '§' ',' < GNS_EBBS_IN_nullrecords.txt > 5.txt
+
+tail -n +2 $inpath/*${segment}_${rundate}_${country}* | head -n -1 | awk -v a="$position" -F '§' '$a==""' | sort -u | awk -F '§' '{print $2,$1,$3","}' OFS=',' | grep ",," | tee record.csv
+
+##Difference between NR and FNR
+If there are two files and we want to count the number of records in that files,
+NR will count the no of records in file1 and start with next line number for file1
+But FNR will count the no of records of second file from 1
+
+##Truncate the first | from a line
+head -1 cpvidver.txt | awk -F'|' '{$1=""; print $0}' OFS='|' | sed 's/^|//g'
+
+##Remove spaces in a line
+sed 's/ //g' FK_Extract.txt
+
+##SCP transfer file from 1 server to another server
+scp GNS_EDM_EBBS_20170215_US*gz gnsusr@10.20.239.12://gns/uat/download/edm/
+scp GNS_EDM_CUPIDII_20170205_ALL*gz gnsusr@10.20.239.12://gns/uat/download/edm/PVB/
+
+PSHR/20170327/
+
+
+scp GNS_EDM_PSHR_20170127_ALL*gz bcbssit@10.20.172.193://var/opt/teradata/home/bcbssit/Platinum_Scripts/Mahe/GNS_20160727/data_extract/
+
+scp GNS_EDM_VENDORMASTER_20170225_ALL.dat*gz bcbssit@10.20.172.193://var/opt/teradata/home/bcbssit/Platinum_Scripts/Mahe/GNS_20160727/data_extract/
+
+scp GNS_EDM_CUPIDII_20170205_ALL*gz bcbssit@10.20.172.193://var/opt/teradata/home/bcbssit/Platinum_Scripts/Mahe/GNS_20160727/data_extract/
+
+scp GNS_EDM_EBBS_20170215_GB*gz bcbssit@10.20.172.193://var/opt/teradata/home/bcbssit/Platinum_Scripts/Mahe/GNS_20160727/data_extract/
+
+iconv -f iso-8859-1 -t utf-8 "${exportfilewithpath}" > "${exportfilewithpath}_UTF8" 
+hadoop fs -getmerge hdfs://STANCDEV1TDH/apps/hive/warehouse/default_pvb.db/gns_t1_t3   ${exportfilewithpath}
+
+sed -i '1i\'`echo  "${headerrecord}"`   "${exportfilewithpath}"
+ 
+sed -i '$ a\'`echo "${trailerrecord}"`  "${exportfilewithpath}" 
+
+
+##To check the process ID of the job run
+ps -ef | grep "GNS_EBBS_PROC.sh"
+
+##To check current running job
+ps -u gnsusersit
+
+ps aux | grep gnsusersit 
+
+##To get the date of previous day/earlier days
+date --date="2 days ago" +%Y-%m-%d
+next_order_date=`date -d "$order_date next day" +%Y%m%d`
+next_order_date=`date -d "$order_date 1 days" +%Y%m%d`
+
+##To remove first and last charater of a string
+head -c -2 | tail -c -2
+
+##Cut file extension
+filename | cut -f1 -d'.'
+
+###Script to update checksum
+filelist=`ls *dat`
+
+for files in $filelist
+do
+	filename=`echo $files | cut -f1 -d'.'` 
+	sed 's/20160721/20160702/1' ${filename}.dat > ./Result/${filename}.dat	
+	cksumupdate=`cksum ./Result/${filename}.dat | awk '{print$1}'`
+	awk -F '|' '{$2='$cksumupdate';}1' OFS='|' ${filename}.ctl > ./Result/${filename}.ctl
+done
+
+##Print lines having 2nd field as R
+awk '$2=="R" {print$0}' GNS_EDM_CUPD_20170228_ALL.dat	
+
+unique=`sort -u 20.txt | awk '{print $1}'`
+for i in "$unique"
+do
+grep "i" "20.txt" | awk '{print NR, $0}'  >> 22.txt
+done
+
+## Remove first 5 characters of a line
+sed 's/^.\{5\}//g' sample.txt  
+
+## Fold single line into multiple lines based 
+fold -w6 >> Result.txt
+
+##Will retun duplicate fields alone
+uniq -d Will retun duplicate fields alone
+
+##Will retun unique fields alone
+uniq -u Will retun unique fields alone
+
+uniq will return values once if it comes multiple times
+
+##Grep to fetch unmatched lines
+
+grep -v "pattern" filename
+
+##To extract specific columns
+cut -c 1 filename(Default delimiter is tab)
+
+cut -f1 -d'.' filename (If the default delimiter is not tab)
+
+cut -f1,2,4 -d'.' filename(Multiple columns)
+
+##Exit codes in unix
+0 - Successfull completion of script
+1 - Syntax error
+
+##Sorting
+sort -n -k 1 -- Sort based on column 1
+
+sort -s -n -k 1,1 -- Sort only 1st column not any other columns, above sorts next fields also
+
+##Default Delimiters:
+awk - space
+cut - tab
+record separator RS - \n
+
+
+##AWK Manipulation/Mathematical calculation
+##Awk Working Methodology
+
+Awk reads the input files one line at a time.
+For each line, it matches with given pattern in the given order, if matches performs the corresponding action.
+If no pattern matches, no action will be performed.
+In the above syntax, either search pattern or action are optional, But not both.
+If the search pattern is not given, then Awk performs the given actions for each line of the input.
+If the action is not given, print all that lines that matches with the given patterns which is the default action.
+Empty braces with out any action does nothing. It wont perform default printing operation.
+Each statement in Actions should be delimited by semicolon.
+
+Syntax: 
+
+BEGIN { Actions}
+{ACTION} # Action for everyline in a file
+END { Actions }
+
+-->Actions specified in the BEGIN section will be executed before starts reading the lines from the input.
+-->END actions will be performed after completing the reading and processing the lines from the input.
+
+Example:
+awk 'BEGIN {print "Name\tDesignation\tDepartment\tSalary";}
+> {print $2,"\t",$3,"\t",$4,"\t",$NF;}
+> END{print "Report Generated\n--------------";
+> }' employee.txt
+
+##Concatenate Multiple characters into single character
+awk '{print $1$2$3}' filename
+
+##Concatenate Multiple characters with special characters
+awk '{print $2"("$3","$4")"}' filename
+
+##Ignore the header line from a file
+awk -F"," 'NR!=1{print $1,$3}'
+
+##Output the record with field separator
+awk '{print $1,$3}' OFS="," file1
+
+#GET 3rd row 3rd column from a file
+awk -F "|" 'NR==3{print $3}' filename
+awk '/a/ {print $3 "\t" $4}' marks.txt -- Searching for the pattern 'a' in a file
+awk '/a/{++cnt} END {print "Count = ", cnt}' marks.txt  -- count of matched text
+length($0) - to calculate the length of the string
+awk 'length($0) > 18' marks.txt -- Print the lines having length of string > 18
+awk -F ',' '!length($2)' Result.csv -- Print line with second field empty
+awk -F ',' 'length($2)>4 {print $2}' Result.csv
+awk -F ',' 'length($2)>4{++cnt} END {print cnt}' Result.csv
+RLENGTH - Prints the length of the record matched by MATCH Function
+awk 'BEGIN { if (match("One Two Three", "re")) { print RLENGTH } }'
+
+awk -F '|' '{a[$3] += $5} END{for (i in a) print i, a[i]}' CHECKSUM.txt
+awk -F '|' '{a[$3] += $5} END{print a["CXS120A"]}' CHECKSUM.txt
+
+##AWK Built in varibales:
+NR,FNR,NF,IFS,OFS,FS,RS,ORS
+http://www.thegeekstuff.com/2010/01/8-powerful-awk-built-in-variables-fs-ofs-rs-ors-nr-nf-filename-fnr/?ref=binfind.com/web
+
+%s and %d in linux - Output values can be treated as string or decimal
+$NF -> Represents last filed
+ETL Websites:
+
+http://datawarehouse4u.info/What-is-Business-Intelligence.html
+
+
+FIND:
+find . -type f --> To find files
+find . -type d --> To find directory
+find -type d -name ".*" --> Hidden directory
+find . -perm 040 -type f -exec ls -l {} \
+find . -perm 040 -type f -exec rm {} \ --> Remove files having 040 perm
+find / --> Represents search from Root
+find . -empty --> Find empty files
+find ~ -size +100M --> Fidn the files based on size(Greater than 100MB)
+find ~ -size -100M --> Fidn the files based on size(LESSER than 100MB)
+find ~ -size 100M --> Fidn the files based on size(Exact match 100MB)
+
+find . -type f -exec mv '{}' '{}'.dat \;
+
+[tpsappsit@HKLPATHAS03 ~]$ hdp-select versions
+2.4.2.0-258
+Hive - 1.2 
+Hadoop - 2.7
+Sqoop - 1.4
+Spark - 1.6.1
+
+Query output redirection:
+>> ${source_lower}_${country_lower}_md_pkvalidation.log 2>&1
+
+
+GREP:
+grep -r "ramesh" * --> Alternate of grep(Search recursively in current and its sub directories)
+grep -v "pattern" * --> Line doesnt have the respective pattern
+grep -v -e "pattern" -e "pattern" --> To ignore multiple | NOT OPERATOR
+grep -c "pattern" filename --> Count the lines matching the pattern
+grep -n "go" demo_text --> Display line number in the search output
+grep -E 'pattern1|pattern2' filename --> To simulate OR operator
+egrep 'pattern1|pattern2' filename --> To simulate OR operator
+grep -E 'pattern1.*pattern2' filename --> To simulate AND operator
+grep Manager employee.txt | grep Sales --> To simulate AND operator
+grep -w "mahe" --> Match the exact pattern
+
+mailx -s "Test" -a 1.txt magendran.sundaram@sc.com "^D"
+
+tail -n +2 FINIQ_STRATEGIC_GBL_ELN_20161214_D.DAT | head -n -1 | awk -F '|' '{sum+=$19} END {printf "%.2f", sum}'
+if [[ "$tablename_upper" =~ [AUC] ]];then FileCount=`wc -l ${country_upper}.${tablename_upper:0:6}.${tablename_upper:6:9}.${filedate}.TXT | awk '{print $1-2}'`;else FileCount=`wc -l ${country_upper}.${tablename_upper}.${filedate}.TXT | awk '{print $1-2}'`;fi
+
+cat AUTLOGPF.D2017130.T124818067.R001000 | cut -d "^A" -f 5,6,12,142 | sort | uniq | wc -l
+
+
+=IF(B2=B3,VALUE(C2)+1,1)
+
+lsb_release -a --> To find the OS version in unix system
+
+#Delete the line having specific pattern
+sed -i '/<pattern-to-match-with-proper-escape>/d' data.txt 
+-i option will change the original file.
+awk '!/<pattern-to-match-with-proper-escape>/' data.txt
+awk '$3 != 7'
+awk '!/7/'
+
+table_list="bc_message|bc_message_recipient|ccm_communication|ccm_communication_atchmt|ccm_communication_dest|ccm_communication_failure|ccm_document|ccm_document_gen_req|ccm_document_gen_req_det|ccm_document_image|ccm_document_template_ref|ccm_history|ccm_lock|ccm_note|ccm_task|ccm_template|ccm_template_detail|ccm_user_text|cmn_call_script|cs_analyst_contact_info|cs_case|cs_case_action|cs_case_event|cs_case_event_type|cs_case_forwarding|cs_case_forwarding_note_type|cs_case_level|cs_case_lock|cs_case_note|cs_case_score_range|cs_case_status|cs_case_status_code|cs_case_status_type|cs_imperative_case_detail|expert_udv_mapping|fraud_account_summary|fraud_ach|fraud_alert|fraud_audit_log|fraud_autmtd_decsn_trkg|fraud_automated_decision|fraud_business_information|fraud_card_block_reissue|fraud_card_compromise|fraud_card_merchant|fraud_card_suspect_tran|fraud_check|fraud_credit_auth_post|fraud_credit_non_monetary|fraud_credit_payment|fraud_customer_information|fraud_debit_auth_post|fraud_debit_deposit|fraud_debit_non_monetary|fraud_delta_threshold|fraud_demographic|fraud_ext_notification|fraud_faster_payment|fraud_fedwire|fraud_fi_transaction|fraud_global_rule_tenant|fraud_hash_salt|fraud_hotlist|fraud_hotlist_entry|fraud_hover_over|fraud_hover_over_hierarchy|fraud_ledger|fraud_nonmonetary|fraud_payment_instrument|fraud_property_value|fraud_retail_banking|fraud_scoring|fraud_swiftwire|fraud_transaction_type|fraud_user_defined_value|fraud_verified|import_adt|import_credit_auth_post|import_credit_non_monetary|import_credit_payment|import_debit_auth_post|import_debit_deposit|import_debit_non_monetary|import_ext_notification|import_nonmonetary|import_retail_banking|import_scoring|import_udv|locn_address|locn_address_type|log_audit|log_audit_saved_search|maa_adapt_analytcs_fdback|maa_fraud_message|org|org_client|org_contact|org_data_provider|org_hierarchy|org_hierarchy_level|org_hierarchy_member|org_service_provider|party|party_address|party_email|party_online_address|party_phone|party_phone_type|party_role|person|person_disability|person_education|person_language|person_name|product_type|scoring|scoring_model|scoring_population|scoring_population_range|scoring_score_reason|third_party|third_party_reference|third_party_type|secrty_user|account|cmn_saved_search|credit_scoring_model_cat|credit_scoring_model_ste|cust|cust_employment|domain_value_g|iso_country|iso_currency|local_language|local_locale|local_time_zone|secrty_tenant|secrty_user_group|data_module_g|domain_value|data_entity"
+
+source_name="falcon"
+country_name="all"
+IFS='|'
+
+for table_name in $table_list
+do
+hadoop fs -cat /sit/scudee/${source_name}/metadata/${country_name}/${table_name}/json/${source_name}_${country_name}_${table_name}.json | awk 'BEGIN {RS=","; FS=":";} /threshold/ {print "'$table_name'",$1,$2;}'
+done
+
+#Migrating data from one HDFS server to another
+hadoop distcp hdfs://nn1:8020/foo/bar  hdfs://nn2:8020/bar/foo
+
+beeline -u "jdbc:hive2://hklpathas06:2181/default;serviceDiscoveryMode=zookeeper;zooKeeperNamespace=hiveserver2" -n falconappsit -p India@2017
+
+#Cut the field based on character position
+cut -c 2-5 EOD_RECON.D2017221.T095756947.R000140 | awk '{sum+=$1} END {printf "%.2f\n",sum}'
+
+beeline -u "jdbc:hive2://hklpathas06:2181/default;serviceDiscoveryMode=zookeeper;zooKeeperNamespace=hiveserver2" -n falconappsit -p India@2018
+beeline -u "jdbc:hive2://hklpathas06:2181/default;serviceDiscoveryMode=zookeeper;zooKeeperNamespace=hiveserver2" -n ncsappsit -p SCBpassword1
+
+beeline -u "jdbc:hive2://hklpathas06:2181/default;serviceDiscoveryMode=zookeeper;zooKeeperNamespace=hiveserver2" -n tpsappsit -p SCBpassword12345
+
